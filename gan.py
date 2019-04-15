@@ -9,7 +9,7 @@ class block(nn.Module):
         super(block,self).__init__()
         self.deconv1 = nn.Sequential(
             nn.Conv2d(in_filters, n_filters, 3, stride=1, padding=1),
-            nn.BatchNorm2d(n_filters),
+            nn.InstanceNorm2d(n_filters),
             nn.ReLU())
     def forward(self, x):
         x=self.deconv1(x)

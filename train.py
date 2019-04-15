@@ -121,7 +121,7 @@ for epoch in range(schedule.get_total_epoches()):
 
     G.eval()
     D.eval()
-    if epoch%500==0:
+    if epoch%10==0:
         if not os.path.exists('./pth/epoch%d' % epoch):
             os.mkdir('./pth/epoch%d' % epoch)
         for i_val,(real_imgs,real_labels) in enumerate(valloader):
@@ -135,6 +135,8 @@ for epoch in range(schedule.get_total_epoches()):
             label = real_labels[0].cpu().data.numpy().flatten()
            # Criterion().precision_recall('./pth/epoch%d' % epoch, i_val, label, pred)
             Image.fromarray((outputs * 255).astype(np.uint8)).save("./pth/epoch%d/%d.jpg" % (epoch, i_val))
+        torch.save(G.state_dict(), "./pth/G.pth")
+        torch.save(D.state_dict(), "./pth/D.pth")
 
 torch.save(G.state_dict(), "./pth/G.pth")
 torch.save(D.state_dict(), "./pth/D.pth")
