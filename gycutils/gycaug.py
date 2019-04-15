@@ -2,6 +2,7 @@ from PIL import Image,ImageEnhance
 import numpy as np
 import random
 from skimage import color,exposure
+from torchvision.transforms import Resize
 
 class Compose_imglabel(object):
     def __init__(self, transforms):
@@ -9,7 +10,11 @@ class Compose_imglabel(object):
 
     def __call__(self, img,label):
         for t in self.transforms:
-            img,label = t(img,label)
+            if isinstance(t,Resize):
+                img = t(img)
+                label = t(label)
+            else:
+                img,label = t(img,label)
         return img,label
 
 

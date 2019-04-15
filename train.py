@@ -10,7 +10,7 @@ from datasets import VOCDataSet
 from torch.optim import Adam
 from loss import BCE_Loss
 from transform import ReLabel, ToLabel
-from torchvision.transforms import Compose, Normalize, ToTensor
+from torchvision.transforms import Compose, Normalize, ToTensor, Resize
 import tqdm
 from Criterion import Criterion
 from PIL import Image
@@ -31,14 +31,15 @@ target_transform = Compose([
         ReLabel(255, 1),
     ])
 img_label_transform = Compose_imglabel([
-        Random_crop(512,512),
+        Resize(size=(1280,1280)),
+        Random_crop(1024,1024),
         Random_horizontal_flip(0.5),
         Random_vertical_flip(0.5),
     ])
 
 trainloader = data.DataLoader(VOCDataSet("./", img_transform=input_transform,
                                          label_transform=target_transform,image_label_transform=img_label_transform),
-                              batch_size=2, shuffle=True, pin_memory=True)
+                              batch_size=1, shuffle=True, pin_memory=True)
 valloader = data.DataLoader(VOCDataSet("./",split='val', img_transform=val_transform,
                                          label_transform=target_transform,image_label_transform=img_label_transform),
                               batch_size=1, shuffle=False, pin_memory=True)
@@ -49,9 +50,9 @@ D=torch.nn.DataParallel(discriminator(n_filters=32)).cuda()
 G=torch.nn.DataParallel(generator(n_filters=32)).cuda()
 gan_loss_percent=0.03
 
-one=torch.FloatTensor([1])
-mone=one*-1
-moneg=one*-1*gan_loss_percent
+one=torch.tensor(1.0)
+mone=one*-1.0
+moneg=one*-1.0*gan_loss_percent
 
 one=one.cuda()
 mone=mone.cuda()
@@ -79,6 +80,7 @@ for epoch in range(schedule.get_total_epoches()):
         d_real = D(real_pair)
         d_real = d_real.mean()
         d_real.backward(mone)
+
 
         fake_pair=torch.cat((real_imgs, G(real_imgs)), dim=1)
         #fake_pair_y=Variable(torch.zeros((real_pair.size()[0],1))).cuda()
@@ -120,7 +122,8 @@ for epoch in range(schedule.get_total_epoches()):
     G.eval()
     D.eval()
     if epoch%500==0:
-        os.mkdir('./pth/epoch%d' % epoch)
+        if not os.path.exists('./pth/epoch%d' % epoch):
+            os.mkdir('./pth/epoch%d' % epoch)
         for i_val,(real_imgs,real_labels) in enumerate(valloader):
             real_imgs = Variable(real_imgs.cuda(), volatile=True)
             real_labels = Variable(real_labels.cuda(), volatile=True)
