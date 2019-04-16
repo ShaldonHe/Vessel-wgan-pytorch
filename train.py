@@ -16,7 +16,7 @@ from Criterion import Criterion
 from PIL import Image
 import numpy as np
 import os
-from gycutils.gycaug import ColorAug,Random_horizontal_flip,Random_vertical_flip,Compose_imglabel,Random_crop
+from gycutils.gycaug import ColorAug,Random_horizontal_flip,Random_vertical_flip,Compose_imglabel,Random_crop,Random_rotation
 input_transform = Compose([
     ColorAug(),
     ToTensor(),
@@ -32,6 +32,7 @@ target_transform = Compose([
     ])
 img_label_transform = Compose_imglabel([
         Resize(size=(1280,1280)),
+        Random_rotation(1),
         Random_crop(1024,1024),
         Random_horizontal_flip(0.5),
         Random_vertical_flip(0.5),
@@ -48,6 +49,10 @@ valloader = data.DataLoader(VOCDataSet("./",split='val', img_transform=val_trans
 schedule=Scheduler(lr=1e-4,total_epoches=4000)
 D=torch.nn.DataParallel(discriminator(n_filters=32)).cuda()
 G=torch.nn.DataParallel(generator(n_filters=32)).cuda()
+
+G.load_state_dict(torch.load("./pth/G.pth"))
+D.load_state_dict(torch.load("./pth/D.pth"))
+
 gan_loss_percent=0.03
 
 one=torch.tensor(1.0)

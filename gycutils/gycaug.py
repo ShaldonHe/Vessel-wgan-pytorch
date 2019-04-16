@@ -129,7 +129,7 @@ class Random_rotation(object):
         :return: 旋转转之后的图像
         """
         random_angle = np.random.randint(0, 360)
-        return image.rotate(random_angle, mode)
+        return image.rotate(random_angle, mode),label.rotate(random_angle)
 
     def __init__(self,prob):
         self.prob=prob
